@@ -1,6 +1,8 @@
 const db = require("../models");
 const Tutorial = db.tutorials;
 
+//pagination
+
 //saves a new tutorial
 exports.create = (req, res) => {
   // Validate request
@@ -42,6 +44,39 @@ exports.findAll = (req, res) => {
   Tutorial.find(condition)
     .then((data) => {
       res.send(data);
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred whilr retrieving tutorials",
+      });
+    });
+};
+
+const getPagination = (page, size) => {
+  const limit = size ? +size : 3;
+  const offset = page ? page * limit : 0;
+
+  return { limit, offset };
+};
+
+//retrieve all tutorials with pagination
+exports.findAllByPage = (req, res) => {
+  const { page, size, title } = req.query;
+  var condition = title
+    ? { title: { $regex: new RegExp(title), $options: "i" } }
+    : {};
+
+  const { limit, offset } = getPagination(page, size);
+
+  Tutorial.paginate(condition, { limit, offset })
+    .then((data) => {
+      res.send({
+        totalItems: data.totalDocs,
+        tutorials: data.docs,
+        totalPages: data.totalPages,
+        currentPage: data.page - 1,
+      });
     })
     .catch((err) => {
       res.status(500).send({
@@ -134,6 +169,27 @@ exports.findAllPublished = (req, res) => {
   Tutorial.find({ published: true })
     .then((data) => {
       res.send(data);
+    })
+    .catch((err) => {
+      res.status(500).send({
+        message:
+          err.message || "some error occured while retrieving tutorials.",
+      });
+    });
+};
+
+//find all published tutorials with paginaton
+exports.findAllPublishedByPage = (req, res) => {
+  const { page, size } = req.query;
+  const { limit, offset } = getPagination(page, size);
+  Tutorial.paginate({ published: true }, { offset, limit })
+    .then((data) => {
+      res.send({
+        totalItems: data.totalDocs,
+        tutorials: data.docs,
+        totalPages: data.totalPages,
+        currentPage: data.page - 1,
+      });
     })
     .catch((err) => {
       res.status(500).send({

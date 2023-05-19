@@ -1,6 +1,7 @@
 const dbConfig = require("../config/db.config");
 
 const mongoose = require("mongoose");
+const mongoosePaginate = require("mongoose-paginate-v2");
 
 mongoose.Promise = global.Promise;
 
